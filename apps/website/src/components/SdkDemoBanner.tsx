@@ -1,5 +1,5 @@
 import React from "react";
-import { Terminal, Code2, ArrowUpRight } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function SdkDemoBanner() {
@@ -17,16 +17,15 @@ export function SdkDemoBanner() {
             </Badge>
           </div>
           <p className="text-xs text-gray-400 mt-0.5">
-            You are testing the <code className="text-indigo-300 font-mono">compressly</code> npm library executing directly on your CPU/GPU via Web Workers — not a cloud SaaS.
+            You are testing the <code className="text-indigo-300 font-mono">compressly</code> npm library executing directly on your CPU/GPU via Web
+            Workers — not a cloud SaaS.
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2 shrink-0 text-xs">
         <span className="text-gray-400">Want this in your app?</span>
-        <code className="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-indigo-300 font-mono text-[11px]">
-          npm i compressly
-        </code>
+        <code className="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-indigo-300 font-mono text-[11px]">npm i compressly</code>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="./assets/cover.png"
+    src="./assets/cover.jpeg"
     alt="Compressly - Ultra-fast client-side image compression"
     width="100%"
   />
@@ -15,7 +15,7 @@
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](https://npmjs.com/package/compressly)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org)
 
-Compressly eliminates annoying *"Image size too large"* upload errors. It enables users to upload **any photo of any resolution or size** (even 20MB+ 4K camera photos), automatically downscaling dimensions, fixing EXIF rotation, and compressing files down to ~200KB–500KB on the client device in milliseconds with **0$ cloud fees** and **0 UI lag**.
+Compressly eliminates annoying _"Image size too large"_ upload errors. It enables users to upload **any photo of any resolution or size** (even 20MB+ 4K camera photos), automatically downscaling dimensions, fixing EXIF rotation, and compressing files down to ~200KB–500KB on the client device in milliseconds with **0$ cloud fees** and **0 UI lag**.
 
 ---
 
@@ -34,17 +34,17 @@ Compressly eliminates annoying *"Image size too large"* upload errors. It enable
 
 ## 📊 Comparison vs Existing Alternatives
 
-| Feature / Metric | **Compressly** ⚡ | `browser-image-compression` | `compressorjs` |
-| :--- | :---: | :---: | :---: |
-| **Bundle Size (Minified)** | **< 3 KB** | ~52 KB | ~25 KB |
-| **Runtime Dependencies** | **0 (Zero)** | Multiple | 0 |
-| **Off-Thread Web Worker** | **Yes (`OffscreenCanvas`)** | Yes | No |
-| **Adaptive Target Size Loop** | **Yes (`targetSizeMB`)** | Yes | No |
-| **Concurrent Batch Mode** | **Yes (`compressImages`)** | Manual loop | Manual loop |
-| **Auto EXIF Orientation** | **Yes (Native)** | Yes | Yes |
-| **Next.js / SSR Safe** | **Yes (Out of the box)** | Requires workaround | Requires workaround |
-| **Smart Pass-Through** | **Yes** | No | No |
-| **React Hook Included** | **Yes (`useImageCompressor`)** | No | No |
+| Feature / Metric              |       **Compressly** ⚡        | `browser-image-compression` |   `compressorjs`    |
+| :---------------------------- | :----------------------------: | :-------------------------: | :-----------------: |
+| **Bundle Size (Minified)**    |           **< 3 KB**           |           ~52 KB            |       ~25 KB        |
+| **Runtime Dependencies**      |          **0 (Zero)**          |          Multiple           |          0          |
+| **Off-Thread Web Worker**     |  **Yes (`OffscreenCanvas`)**   |             Yes             |         No          |
+| **Adaptive Target Size Loop** |    **Yes (`targetSizeMB`)**    |             Yes             |         No          |
+| **Concurrent Batch Mode**     |   **Yes (`compressImages`)**   |         Manual loop         |     Manual loop     |
+| **Auto EXIF Orientation**     |        **Yes (Native)**        |             Yes             |         Yes         |
+| **Next.js / SSR Safe**        |    **Yes (Out of the box)**    |     Requires workaround     | Requires workaround |
+| **Smart Pass-Through**        |            **Yes**             |             No              |         No          |
+| **React Hook Included**       | **Yes (`useImageCompressor`)** |             No              |         No          |
 
 ---
 
@@ -76,9 +76,9 @@ import { compressImage } from "compressly";
 // Handles input change or dropzone file
 const onFileSelected = async (file: File) => {
   const optimizedFile = await compressImage(file, {
-    maxWidth: 1920,      // Max width in pixels (aspect ratio preserved)
-    quality: 0.82,       // 82% quality (indistinguishable, -85% file size)
-    targetSizeMB: 0.5,   // Guarantee output is <= 500 KB
+    maxWidth: 1920, // Max width in pixels (aspect ratio preserved)
+    quality: 0.82, // 82% quality (indistinguishable, -85% file size)
+    targetSizeMB: 0.5, // Guarantee output is <= 500 KB
     onProgress: (percent, phase) => {
       console.log(`Progress: ${percent}% (${phase})`);
     },
@@ -100,7 +100,7 @@ import { compressImages } from "compressly";
 
 // Compress 20 files concurrently without blowing up mobile RAM
 const optimizedFiles = await compressImages(fileList, {
-  concurrency: 3,        // Max 3 images in parallel
+  concurrency: 3, // Max 3 images in parallel
   maxWidth: 1920,
   quality: 0.82,
   onBatchProgress: (overallPercent, completed, total) => {
@@ -134,7 +134,11 @@ export function ProfileAvatarUpload() {
   return (
     <div>
       <input type="file" onChange={handleChange} disabled={isCompressing} />
-      {isCompressing && <p>Optimizing image ({phase})... {progress}%</p>}
+      {isCompressing && (
+        <p>
+          Optimizing image ({phase})... {progress}%
+        </p>
+      )}
       {lastResult && <p>Reduced to {(lastResult.compressedSize / 1024).toFixed(0)} KB!</p>}
     </div>
   );
@@ -147,18 +151,18 @@ export function ProfileAvatarUpload() {
 
 ### `CompressOptions`
 
-| Option | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `maxSizeMB` | `number` | `1` | File size in MB below which compression is skipped. |
-| `targetSizeMB` | `number` | `undefined` | Target max file size. Triggers adaptive iterative optimization. |
-| `maxWidth` | `number` | `1920` | Max output width in px (preserves aspect ratio). |
-| `maxHeight` | `number` | `1920` | Max output height in px (preserves aspect ratio). |
-| `quality` | `number` | `0.82` | Quality factor (0.1 to 1.0) for JPEG/WebP. |
-| `mimeType` | `string` | `undefined` | Force output to `"image/jpeg"`, `"image/webp"`, or `"image/png"`. |
-| `useWorker` | `boolean` | `true` | Runs in Web Worker via `OffscreenCanvas` when supported. |
-| `autoRotate` | `boolean` | `true` | Automatically adjusts EXIF camera rotation. |
-| `forceResize` | `boolean` | `false` | Resizes even if file size is already smaller than `maxSizeMB`. |
-| `onProgress` | `Function` | `undefined` | `(progress: number, phase: CompressionPhase) => void` |
+| Option         | Type       | Default     | Description                                                       |
+| :------------- | :--------- | :---------- | :---------------------------------------------------------------- |
+| `maxSizeMB`    | `number`   | `1`         | File size in MB below which compression is skipped.               |
+| `targetSizeMB` | `number`   | `undefined` | Target max file size. Triggers adaptive iterative optimization.   |
+| `maxWidth`     | `number`   | `1920`      | Max output width in px (preserves aspect ratio).                  |
+| `maxHeight`    | `number`   | `1920`      | Max output height in px (preserves aspect ratio).                 |
+| `quality`      | `number`   | `0.82`      | Quality factor (0.1 to 1.0) for JPEG/WebP.                        |
+| `mimeType`     | `string`   | `undefined` | Force output to `"image/jpeg"`, `"image/webp"`, or `"image/png"`. |
+| `useWorker`    | `boolean`  | `true`      | Runs in Web Worker via `OffscreenCanvas` when supported.          |
+| `autoRotate`   | `boolean`  | `true`      | Automatically adjusts EXIF camera rotation.                       |
+| `forceResize`  | `boolean`  | `false`     | Resizes even if file size is already smaller than `maxSizeMB`.    |
+| `onProgress`   | `Function` | `undefined` | `(progress: number, phase: CompressionPhase) => void`             |
 
 ---
 
