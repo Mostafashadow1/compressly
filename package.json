@@ -1,0 +1,22 @@
+{
+  "name": "compressly-monorepo",
+  "private": true,
+  "license": "MIT",
+  "author": "Mostafa Mohamed Abdalla (https://github.com/Mostafashadow1)",
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "type-check": "turbo run type-check",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.0"
+  }
+}
