@@ -1,6 +1,7 @@
 import React from "react";
 import { Header } from "@/components/Header";
 import { InstallTabs } from "@/components/InstallTabs";
+import { HeroPipelineWidget } from "@/components/HeroPipelineWidget";
 import { SdkDemoBanner } from "@/components/SdkDemoBanner";
 import { InteractivePlayground } from "@/components/InteractivePlayground";
 import { CloudCostComparison } from "@/components/CloudCostComparison";
@@ -42,9 +43,12 @@ export default function HomePage() {
         </p>
 
         {/* Package Manager Installation Tabs (pnpm, npm, yarn, bun) */}
-        <div className="mb-14">
+        <div className="mb-10">
           <InstallTabs />
         </div>
+
+        {/* Visual Transformation Pipeline Widget (Developer Architecture) */}
+        <HeroPipelineWidget />
       </section>
 
       {/* Interactive Multi-Image Playground */}

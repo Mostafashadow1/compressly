@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import {
-  compressImageWithDetails,
   compressImagesWithDetails,
   CompressResult,
   CompressionPhase,
@@ -19,14 +18,14 @@ import {
   Trash2,
   Eye,
   SlidersHorizontal,
-  X,
-  AlertCircle,
+  ArrowRight,
+  Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card } from "@/components/ui/card";
+import { ComparisonSliderModal, ComparisonItem } from "./ComparisonSliderModal";
 
 export function InteractivePlayground() {
   // Compression Settings
@@ -35,23 +34,18 @@ export function InteractivePlayground() {
   const [targetSizeMB, setTargetSizeMB] = useState<string>("");
   const [concurrency, setConcurrency] = useState<number>(3);
   const [useWorker, setUseWorker] = useState<boolean>(true);
-  const [format, setFormat] = useState<
-    "auto" | "image/jpeg" | "image/webp" | "image/png"
-  >("auto");
+  const [format, setFormat] = useState<"auto" | "image/jpeg" | "image/webp" | "image/png">("auto");
   const [showSettings, setShowSettings] = useState<boolean>(true);
 
   // Processing & Results State
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [phase, setPhase] = useState<CompressionPhase>("idle");
-  const [results, setResults] = useState<
-    Array<CompressResult & { originalUrl: string; compressedUrl: string }>
-  >([]);
-  const [selectedResult, setSelectedResult] = useState<
-    (CompressResult & { originalUrl: string; compressedUrl: string }) | null
-  >(null);
+  const [results, setResults] = useState<ComparisonItem[]>([]);
+  const [modalItem, setModalItem] = useState<ComparisonItem | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -80,24 +74,19 @@ export function InteractivePlayground() {
         }
       }
 
-      // Notify user about rejected non-image files via rich toast
       if (invalidFiles.length > 0) {
         if (invalidFiles.length === 1) {
           toast.error("Unsupported file type", {
             description: `"${invalidFiles[0].name}" is not an image file. Compressly accepts PNG, JPEG, WebP, SVG, and AVIF.`,
           });
         } else {
-          const sampleNames = invalidFiles
-            .slice(0, 2)
-            .map((f) => f.name)
-            .join(", ");
+          const sampleNames = invalidFiles.slice(0, 2).map((f) => f.name).join(", ");
           toast.error(`${invalidFiles.length} non-image files skipped`, {
             description: `Files (${sampleNames}...) were rejected. Only images are processed.`,
           });
         }
       }
 
-      // Stop if there are no valid images to process
       if (validFiles.length === 0) {
         return;
       }
@@ -109,6 +98,11 @@ export function InteractivePlayground() {
       setIsProcessing(true);
       setProgress(0);
       setPhase("reading");
+
+      // Auto-scroll down to results so the user immediately sees the action
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
 
       const options = {
         quality,
@@ -129,16 +123,13 @@ export function InteractivePlayground() {
           },
         });
 
-        const decorated = detailedResults.map((res, i) => ({
+        const decorated: ComparisonItem[] = detailedResults.map((res, i) => ({
           ...res,
           originalUrl: URL.createObjectURL(validFiles[i]),
           compressedUrl: URL.createObjectURL(res.file),
         }));
 
         setResults((prev) => [...decorated, ...prev]);
-        if (decorated.length > 0) {
-          setSelectedResult(decorated[0]);
-        }
 
         const totalSaved = detailedResults.reduce(
           (acc, r) => acc + (r.originalSize - r.compressedSize),
@@ -150,8 +141,7 @@ export function InteractivePlayground() {
       } catch (err) {
         console.error("Compression failed:", err);
         toast.error("Optimization error", {
-          description:
-            "An unexpected error occurred during client-side compression.",
+          description: "An unexpected error occurred during client-side compression.",
         });
       } finally {
         setIsProcessing(false);
@@ -188,64 +178,47 @@ export function InteractivePlayground() {
       URL.revokeObjectURL(r.compressedUrl);
     });
     setResults([]);
-    setSelectedResult(null);
   };
 
   // Aggregated Batch Stats
-  const totalOriginalBytes = results.reduce(
-    (acc, r) => acc + r.originalSize,
-    0,
-  );
-  const totalCompressedBytes = results.reduce(
-    (acc, r) => acc + r.compressedSize,
-    0,
-  );
+  const totalOriginalBytes = results.reduce((acc, r) => acc + r.originalSize, 0);
+  const totalCompressedBytes = results.reduce((acc, r) => acc + r.compressedSize, 0);
   const totalSavedBytes = totalOriginalBytes - totalCompressedBytes;
   const overallReduction =
     totalOriginalBytes > 0
-      ? Math.max(
-          0,
-          parseFloat(((totalSavedBytes / totalOriginalBytes) * 100).toFixed(1)),
-        )
+      ? Math.max(0, parseFloat(((totalSavedBytes / totalOriginalBytes) * 100).toFixed(1)))
       : 0;
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
-      {/* Main Container Card */}
+    <div className="w-full max-w-6xl mx-auto space-y-8">
+      {/* Settings Card */}
       <Card className="border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-2xl p-6 sm:p-8">
-        {/* Controls Toolbar Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-white/5">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <SlidersHorizontal className="size-4 text-indigo-400" />{" "}
-              Compression Engine Settings
+              <SlidersHorizontal className="size-4 text-indigo-400" /> SDK Engine Controls
             </h3>
             <Badge variant="default" className="text-[10px] font-mono">
-              Hardware-Accelerated
+              Client-Side Parameters
             </Badge>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSettings(!showSettings)}
-              className="text-xs text-gray-400 hover:text-white"
-            >
-              {showSettings ? "Hide Controls" : "Show Controls"}
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+            className="text-xs text-gray-400 hover:text-white"
+          >
+            {showSettings ? "Hide Controls" : "Show Controls"}
+          </Button>
         </div>
 
         {/* Settings Bar */}
         {showSettings && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 p-5 rounded-2xl bg-white/[0.02] border border-white/5 mb-8 text-sm">
-            {/* Quality Slider */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-300">
-                  Quality Factor
-                </span>
+                <span className="text-xs font-semibold text-gray-300">Quality Factor</span>
                 <Badge variant="default" className="font-mono text-xs">
                   {Math.round(quality * 100)}%
                 </Badge>
@@ -260,16 +233,13 @@ export function InteractivePlayground() {
                 className="w-full accent-indigo-500 cursor-pointer"
               />
               <span className="text-[11px] text-gray-500 mt-1 block">
-                82% is optimal for indistinguishable fidelity.
+                82% is visually indistinguishable from 100%.
               </span>
             </div>
 
-            {/* Max Dimension */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-300">
-                  Max Dimension
-                </span>
+                <span className="text-xs font-semibold text-gray-300">Max Dimension</span>
                 <Badge variant="secondary" className="font-mono text-xs">
                   {maxWidth}px
                 </Badge>
@@ -306,12 +276,9 @@ export function InteractivePlayground() {
               </div>
             </div>
 
-            {/* Target Size In MB */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-300">
-                  Target Size (Optional)
-                </span>
+                <span className="text-xs font-semibold text-gray-300">Target Size (Optional)</span>
                 <span className="text-[11px] text-gray-500">Adaptive Loop</span>
               </div>
               <input
@@ -325,11 +292,10 @@ export function InteractivePlayground() {
                 className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-xs font-mono"
               />
               <span className="text-[11px] text-gray-500 mt-1 block">
-                Forces iterative optimization until target size is met.
+                Iterates to strictly guarantee output &le; target size.
               </span>
             </div>
 
-            {/* Concurrency & Worker */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
@@ -357,9 +323,7 @@ export function InteractivePlayground() {
               <div>
                 <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
                   <span>Batch Concurrency</span>
-                  <span className="font-mono text-indigo-400">
-                    {concurrency} parallel
-                  </span>
+                  <span className="font-mono text-indigo-400">{concurrency} parallel</span>
                 </div>
                 <input
                   type="range"
@@ -395,22 +359,16 @@ export function InteractivePlayground() {
           />
 
           <div className="size-16 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white mb-4 shadow-xl shadow-indigo-500/25 transition-transform group-hover:scale-105">
-            {isProcessing ? (
-              <RefreshCw className="size-8 animate-spin" />
-            ) : (
-              <UploadCloud className="size-8" />
-            )}
+            {isProcessing ? <RefreshCw className="size-8 animate-spin" /> : <UploadCloud className="size-8" />}
           </div>
 
           <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight">
-            {isProcessing
-              ? `Optimizing images (${phase})...`
-              : "Drop single or multiple images here"}
+            {isProcessing ? `Optimizing images (${phase})...` : "Drop single or multiple images here"}
           </h3>
           <p className="text-gray-400 text-sm max-w-lg leading-relaxed">
             {isProcessing
-              ? `Processing concurrently across Web Worker threads. Your UI remains 100% responsive.`
-              : "Drag & drop 1, 10, or 50 images of any resolution or size (even 20MB+ camera shots). Compressly handles them effortlessly."}
+              ? `Processing concurrently in background Web Worker threads. Your UI never stutters.`
+              : "Select 1 or bulk 20+ images of any resolution or size. Watch them transform into lightweight web assets in milliseconds."}
           </p>
 
           {/* Real-time Progress Bar */}
@@ -418,9 +376,7 @@ export function InteractivePlayground() {
             <div className="w-full max-w-md mt-6 space-y-2">
               <div className="flex justify-between text-xs text-gray-300">
                 <span className="capitalize">{phase}...</span>
-                <span className="font-mono font-semibold text-indigo-400">
-                  {progress}%
-                </span>
+                <span className="font-mono font-semibold text-indigo-400">{progress}%</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
                 <div
@@ -433,11 +389,14 @@ export function InteractivePlayground() {
         </div>
       </Card>
 
-      {/* Results & Batch Queue Showcase */}
+      {/* Target Results Anchor Ref */}
+      <div ref={resultsRef} className="scroll-mt-24" />
+
+      {/* Multiple Images Results Pipeline */}
       {results.length > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-300">
           {/* Summary Metric Ribbon */}
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 backdrop-blur-xl p-5 flex flex-wrap items-center justify-between gap-4">
+          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 backdrop-blur-xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
             <div className="flex flex-wrap items-center gap-6">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
@@ -445,12 +404,10 @@ export function InteractivePlayground() {
                 </div>
                 <div>
                   <h4 className="text-base font-bold text-white">
-                    {results.length} {results.length === 1 ? "Image" : "Images"}{" "}
-                    Optimized
+                    {results.length} {results.length === 1 ? "Image" : "Images"} Optimized
                   </h4>
                   <span className="text-xs text-emerald-400 font-medium">
-                    Saved {formatBytes(totalSavedBytes)} ({overallReduction}%
-                    size reduction)
+                    Saved {formatBytes(totalSavedBytes)} ({overallReduction}% size reduction)
                   </span>
                 </div>
               </div>
@@ -458,16 +415,12 @@ export function InteractivePlayground() {
               <div className="hidden sm:flex items-center gap-4 text-xs font-mono border-l border-white/10 pl-6 text-gray-400">
                 <div>
                   <span className="block text-gray-500">Original Total</span>
-                  <span className="text-gray-200 font-bold">
-                    {formatBytes(totalOriginalBytes)}
-                  </span>
+                  <span className="text-gray-200 font-bold">{formatBytes(totalOriginalBytes)}</span>
                 </div>
-                <div>→</div>
+                <div>&rarr;</div>
                 <div>
                   <span className="block text-gray-500">Compressed Total</span>
-                  <span className="text-emerald-300 font-bold">
-                    {formatBytes(totalCompressedBytes)}
-                  </span>
+                  <span className="text-emerald-300 font-bold">{formatBytes(totalCompressedBytes)}</span>
                 </div>
               </div>
             </div>
@@ -492,133 +445,105 @@ export function InteractivePlayground() {
             </div>
           </div>
 
-          {/* Side-by-Side Comparison Modal / Box */}
-          {selectedResult && (
-            <Card className="border-indigo-500/30 bg-slate-900/80 p-6">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                  <Eye className="size-4 text-indigo-400" />
-                  <h4 className="font-bold text-white text-base">
-                    Visual Comparison:{" "}
-                    <span className="text-indigo-300">
-                      {selectedResult.file.name}
-                    </span>
-                  </h4>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant="success">
-                    -{selectedResult.reductionPercentage}% &bull;{" "}
-                    {selectedResult.timeTakenMs}ms
-                  </Badge>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => downloadFile(selectedResult.file)}
-                  >
-                    <Download className="size-3.5" /> Download
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Original View */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-gray-400">
-                    <span className="font-semibold uppercase tracking-wider">
-                      Original
-                    </span>
-                    <span className="font-mono text-gray-300">
-                      {formatBytes(selectedResult.originalSize)}
-                    </span>
-                  </div>
-                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/50 border border-white/10 flex items-center justify-center p-2">
-                    <img
-                      src={selectedResult.originalUrl}
-                      alt="Original Preview"
-                      className="size-full object-contain"
-                    />
-                  </div>
-                </div>
-
-                {/* Compressed View */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-emerald-400">
-                    <span className="font-semibold uppercase tracking-wider">
-                      Optimized Result
-                    </span>
-                    <span className="font-mono text-emerald-300 font-bold">
-                      {formatBytes(selectedResult.compressedSize)} (
-                      {selectedResult.dimensions.width}×
-                      {selectedResult.dimensions.height})
-                    </span>
-                  </div>
-                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/50 border border-emerald-500/30 flex items-center justify-center p-2">
-                    <img
-                      src={selectedResult.compressedUrl}
-                      alt="Compressed Preview"
-                      className="size-full object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Processed Items Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {results.map((item, idx) => {
-              const isSelected = selectedResult?.file.name === item.file.name;
-              return (
-                <div
-                  key={idx}
-                  onClick={() => setSelectedResult(item)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 ${
-                    isSelected
-                      ? "border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
-                      : "border-white/10 bg-slate-900/40 hover:border-white/20 hover:bg-white/[0.02]"
-                  }`}
-                >
-                  <div className="size-14 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0 flex items-center justify-center">
-                    <img
-                      src={item.compressedUrl}
-                      alt={item.file.name}
-                      className="size-full object-cover"
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <h5 className="text-sm font-semibold text-white truncate mb-0.5">
-                      {item.file.name}
-                    </h5>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="text-gray-400 line-through">
-                        {formatBytes(item.originalSize)}
-                      </span>
-                      <span className="text-emerald-400 font-bold">
-                        {formatBytes(item.compressedSize)}
-                      </span>
+          {/* Transformation Pipeline Cards List */}
+          <div className="space-y-4">
+            {results.map((item, idx) => (
+              <Card
+                key={idx}
+                className="border-white/10 bg-slate-900/70 p-5 hover:border-indigo-500/30 transition-all shadow-lg"
+              >
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+                  {/* Left: Original File */}
+                  <div className="flex items-center gap-4 w-full lg:w-5/12">
+                    <div className="size-20 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 flex items-center justify-center p-1">
+                      <img
+                        src={item.originalUrl}
+                        alt={item.file.name}
+                        className="size-full object-cover rounded-lg"
+                      />
                     </div>
-                    <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                      -{item.reductionPercentage}% &bull; {item.timeTakenMs}ms
-                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Original</span>
+                        <Badge variant="destructive" className="text-[10px] py-0 font-mono">
+                          {formatBytes(item.originalSize)}
+                        </Badge>
+                      </div>
+                      <h5 className="text-sm font-semibold text-white truncate mb-1">{item.file.name}</h5>
+                      <span className="text-xs text-gray-400 font-mono block">Input File</span>
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadFile(item.file);
-                    }}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0"
-                    title="Download optimized"
-                  >
-                    <Download className="size-4" />
-                  </button>
+                  {/* Center: The Pipeline Arrow + Execution Speed */}
+                  <div className="flex flex-row lg:flex-col items-center justify-center gap-2 text-center py-2 lg:py-0 w-full lg:w-2/12 border-y lg:border-y-0 lg:border-x border-white/5">
+                    <div className="size-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
+                      <ArrowRight className="size-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-mono text-emerald-400 font-bold block">
+                        {item.timeTakenMs}ms
+                      </span>
+                      <span className="text-[10px] text-gray-400">Web Worker</span>
+                    </div>
+                  </div>
+
+                  {/* Right: Optimized Result */}
+                  <div className="flex items-center justify-between gap-4 w-full lg:w-5/12">
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                      <div className="size-20 rounded-xl overflow-hidden bg-black/60 border border-emerald-500/30 shrink-0 flex items-center justify-center p-1">
+                        <img
+                          src={item.compressedUrl}
+                          alt="Compressed"
+                          className="size-full object-cover rounded-lg"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Optimized</span>
+                          <Badge variant="success" className="text-[10px] py-0 font-mono">
+                            {formatBytes(item.compressedSize)}
+                          </Badge>
+                        </div>
+                        <span className="text-xs font-bold text-emerald-300 block mb-0.5">
+                          -{item.reductionPercentage}% Smaller
+                        </span>
+                        <span className="text-xs text-gray-400 font-mono block">
+                          {item.dimensions.width}×{item.dimensions.height}px
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setModalItem(item)}
+                        className="gap-1.5 text-xs text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/10"
+                        title="Inspect comparison slider"
+                      >
+                        <Maximize2 className="size-3.5" /> Inspect
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => downloadFile(item.file)}
+                        className="gap-1.5 text-xs shadow-md shadow-indigo-600/30"
+                      >
+                        <Download className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
+              </Card>
+            ))}
           </div>
         </div>
+      )}
+
+      {/* Comparison Slider Modal */}
+      {modalItem && (
+        <ComparisonSliderModal item={modalItem} onClose={() => setModalItem(null)} />
       )}
     </div>
   );
