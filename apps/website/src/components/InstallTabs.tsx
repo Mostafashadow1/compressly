@@ -8,7 +8,7 @@ type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
 const commands: Record<PackageManager, string> = {
   pnpm: "pnpm add compressly",
-  npm: "npm install compressly",
+  npm: "npm i compressly",
   yarn: "yarn add compressly",
   bun: "bun add compressly",
 };
@@ -24,55 +24,70 @@ export function InstallTabs() {
   };
 
   return (
-    <div className="inline-flex flex-col items-center w-full max-w-lg mx-auto">
-      {/* Shell Box */}
-      <div className="w-full rounded-2xl border border-white/10 bg-slate-950/80 backdrop-blur-md p-2 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2 px-2">
-          {/* Package Manager Tabs */}
+    <div className="w-full max-w-xl mx-auto">
+      {/* Shell Box with elevated border glow and precision typography */}
+      <div className="relative group rounded-2xl border border-white/10 bg-slate-950/70 backdrop-blur-xl p-1.5 shadow-2xl transition-all hover:border-indigo-500/30">
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/[0.06] mb-1">
+          {/* Package Manager Selector Chips */}
           <div className="flex items-center gap-1">
-            <Terminal className="size-3.5 text-gray-500 mr-1.5" />
-            {(["pnpm", "npm", "yarn", "bun"] as PackageManager[]).map((pm) => (
-              <button
-                key={pm}
-                type="button"
-                onClick={() => setSelected(pm)}
-                className={cn(
-                  "px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer",
-                  selected === pm
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-white/5",
-                )}
-              >
-                {pm}
-              </button>
-            ))}
+            <span className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400 mr-2 uppercase tracking-wider">
+              <Terminal className="size-3.5 text-indigo-400" />
+              <span>Install</span>
+            </span>
+            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+              {(["pnpm", "npm", "yarn", "bun"] as PackageManager[]).map((pm) => (
+                <button
+                  key={pm}
+                  type="button"
+                  onClick={() => setSelected(pm)}
+                  className={cn(
+                    "px-2.5 py-0.5 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer",
+                    selected === pm
+                      ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5",
+                  )}
+                >
+                  {pm}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Copy Button */}
+          {/* Precision Copy Action */}
           <button
             type="button"
             onClick={copyToClipboard}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-            title="Copy command"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-white/15 transition-all cursor-pointer"
+            title="Copy install command"
           >
             {copied ? (
               <>
                 <Check className="size-3.5 text-emerald-400" />
-                <span className="text-emerald-400 font-mono text-[11px]">Copied!</span>
+                <span className="text-emerald-400 font-mono text-xs font-semibold">Copied!</span>
               </>
             ) : (
               <>
-                <Copy className="size-3.5" />
-                <span className="font-mono text-[11px]">Copy</span>
+                <Copy className="size-3.5 text-slate-400" />
+                <span className="font-mono text-xs">Copy</span>
               </>
             )}
           </button>
         </div>
 
-        {/* Command line output */}
-        <div className="px-3 py-2 flex items-center gap-3 font-mono text-sm text-gray-200">
-          <span className="text-indigo-400 font-bold select-none">$</span>
-          <span className="select-all">{commands[selected]}</span>
+        {/* Command Output Row */}
+        <div
+          onClick={copyToClipboard}
+          className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-black/40 hover:bg-black/60 transition-colors cursor-pointer group/cmd"
+        >
+          <div className="flex items-center gap-3 font-mono text-sm text-slate-200 overflow-x-auto">
+            <span className="text-indigo-400 font-bold select-none">$</span>
+            <span className="select-all font-medium tracking-tight text-slate-100">
+              {commands[selected]}
+            </span>
+          </div>
+          <span className="text-[11px] font-mono text-slate-400 group-hover/cmd:text-indigo-300 transition-colors hidden sm:inline select-none">
+            click to copy
+          </span>
         </div>
       </div>
     </div>

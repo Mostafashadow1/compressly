@@ -6,6 +6,7 @@
   "sideEffects": false,
   "license": "MIT",
   "author": "Mostafa Mohamed Abdalla (https://github.com/Mostafashadow1)",
+  "homepage": "https://compress-ly.vercel.app/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mostafashadow1/compressly.git"
