@@ -42,7 +42,7 @@ export default function HomePage() {
           {/* Release / Feature Announcement Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-8 shadow-sm backdrop-blur-md hover:border-indigo-500/40 transition-colors">
             <span className="flex size-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-mono text-slate-200">v0.1.0 Ready</span>
+            <span className="font-mono text-slate-200">v0.1.1 Ready</span>
             <span className="text-slate-500">&bull;</span>
             <span className="text-slate-300">Off-Thread Web Worker Engine</span>
             <span className="text-slate-500">&bull;</span>

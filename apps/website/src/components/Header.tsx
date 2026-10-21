@@ -15,7 +15,7 @@ export function Header() {
           <div className="flex items-center gap-2">
             <span className="font-bold text-base sm:text-lg text-white tracking-tight group-hover:text-indigo-200 transition-colors">compressly</span>
             <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 tracking-wide">
-              v0.1.0
+              v0.1.1
             </span>
           </div>
         </Link>

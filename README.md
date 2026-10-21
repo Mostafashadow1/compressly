@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="./assets/cover.jpeg"
+    src="https://raw.githubusercontent.com/Mostafashadow1/compressly/main/packages/compressly/assets/cover.jpeg"
     alt="Compressly - Ultra-fast client-side image compression"
     width="100%"
   />
@@ -11,11 +11,24 @@
 > **Ultra-fast, zero-dependency client-side image compression & optimization library for the web — Next.js, React, Vue, Svelte & Vanilla JS with Web Worker support.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Bundle Size](https://img.shields.io/badge/bundle%20size-%3C%203%20KB-success.svg)](https://bundlephobia.com)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/compressly?label=minzip)](https://bundlephobia.com/package/compressly)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](https://npmjs.com/package/compressly)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org)
 
 Compressly eliminates annoying _"Image size too large"_ upload errors. It enables users to upload **any photo of any resolution or size** (even 20MB+ 4K camera photos), automatically downscaling dimensions, fixing EXIF rotation, and compressing files down to ~200KB–500KB on the client device in milliseconds with **0$ cloud fees** and **0 UI lag**.
+
+---
+
+## When to use Compressly
+
+- Users upload photos (avatars, listings, documents, chat images) and you want smaller files before they hit your server or storage.
+- Uploads fail with 'file too large' or are slow on mobile networks.
+- You need a hard size limit, e.g. every image under 500 KB (`targetSizeMB: 0.5`).
+- You need to compress many files at once without freezing the UI.
+
+**Not for:** Server-side or build-time image optimization (use sharp, next/image, or your CDN). Lossless archival quality or RAW/HEIC editing.
+
+> **Using an AI coding agent?** This package ships an [`AGENTS.md`](https://github.com/Mostafashadow1/compressly/blob/main/packages/compressly/AGENTS.md) and an [`llms.txt`](https://github.com/Mostafashadow1/compressly/blob/main/packages/compressly/llms.txt) with usage rules and examples. Agents with the Context7 MCP can fetch these docs directly.
 
 ---
 
