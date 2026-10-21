@@ -20,7 +20,7 @@ export function JsonLd({ siteUrl }: JsonLdProps) {
       "Ultra-fast, zero-dependency client-side image compression & optimization library for Next.js, React, Vue and Vanilla JS with Web Worker support.",
     url: siteUrl,
     downloadUrl: "https://www.npmjs.com/package/compressly",
-    softwareVersion: "0.1.0",
+    softwareVersion: "0.1.1",
     author: {
       "@type": "Person",
       name: "Mostafa Mohamed Abdalla",

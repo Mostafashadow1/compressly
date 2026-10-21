@@ -1,7 +1,7 @@
 {
   "name": "compressly",
-  "version": "0.1.0",
-  "description": "Zero-dependency, ultra-fast client-side image compression and optimization library for Next.js, React, Vue, Svelte and Vanilla JS with Web Worker support",
+  "version": "0.1.1",
+  "description": "Compress and resize images in the browser before upload: target file size, max width, WebP/JPEG, EXIF rotation, batch + Web Worker. Zero deps, ~2.2 KB.",
   "type": "module",
   "sideEffects": false,
   "license": "MIT",
@@ -9,7 +9,8 @@
   "homepage": "https://compress-ly.vercel.app/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Mostafashadow1/compressly.git"
+    "url": "git+https://github.com/Mostafashadow1/compressly.git",
+    "directory": "packages/compressly"
   },
   "bugs": {
     "type": "git",
@@ -17,15 +18,20 @@
   },
   "keywords": [
     "image-compression",
-    "image-optimizer",
-    "client-side",
-    "browser",
-    "canvas",
-    "offscreen-canvas",
-    "web-worker",
+    "compress-image",
+    "image-resize",
+    "resize-image",
+    "image-upload",
+    "upload",
+    "webp",
+    "jpeg",
     "exif",
-    "nextjs",
+    "browser",
+    "client-side",
+    "web-worker",
+    "offscreen-canvas",
     "react",
+    "nextjs",
     "typescript"
   ],
   "main": "./dist/index.cjs",
@@ -54,14 +60,15 @@
     }
   },
   "files": [
-    "assets",
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "AGENTS.md",
+    "llms.txt"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/react/index.ts --format esm,cjs --dts --clean",
-    "dev": "tsup src/index.ts src/react/index.ts --format esm,cjs --dts --watch",
+    "build": "rm -rf dist && tsup",
+    "dev": "tsup --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "clean": "rm -rf dist"

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Compressly",
+  "description": "Compressly compresses and resizes images in the browser before upload: max width/height, quality, target file size, EXIF auto-rotation, batch mode with concurrency, and a Web Worker (OffscreenCanvas) path. Zero dependencies, ~2.2 KB gzip, SSR-safe, with an optional React hook.",
+  "folders": [
+    "packages/compressly",
+    "apps/website"
+  ],
+  "excludeFolders": [
+    "**/node_modules",
+    "**/dist",
+    "**/tests",
+    "**/__tests__"
+  ],
+  "rules": [
+    "Core functions: `compressImage(file, options)` returns a `File`; `compressImageWithDetails(file, options)` returns `{ file, originalSize, compressedSize, reductionPercentage, timeTakenMs, dimensions }`.",
+    "Batch: `compressImages(files, { concurrency, ...options })` and `compressImagesWithDetails`. Keep concurrency around 2 to 4 on mobile.",
+    "Files below `maxSizeMB` (default 1) are returned unchanged unless `forceResize: true`.",
+    "Defaults: maxWidth 1920, maxHeight 1920, quality 0.82, useWorker true, autoRotate true.",
+    "Output format: `mimeType: \"image/webp\" | \"image/jpeg\" | \"image/png\"`.",
+    "It needs browser APIs (canvas, File). Call it from event handlers or client components, never during server render. In Next.js App Router, files using `compressly/react` must start with \"use client\".",
+    "React hook: `import { useImageCompressor } from \"compressly/react\"` returns `{ compress, compressMultiple, isCompressing, progress, phase, lastResult, lastBatchResults, error, reset }`.",
+    "Still validate type and size on the server. Client compression is a UX and cost optimization, not a security check."
+  ]
+}
